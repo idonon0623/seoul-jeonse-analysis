@@ -1,0 +1,10 @@
+.env
+.env.*
+.dev.vars*
+.venv/
+__pycache__/
+node_modules/
+.wrangler/
+data/raw/
+tmp/
+*.log

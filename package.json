@@ -1,0 +1,14 @@
+{
+  "name": "seoul-jeonse-analysis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "서울시 전세가격 변화 분석 · 2021–2025 · Plotly",
+  "scripts": {
+    "start": "node scripts/serve.cjs",
+    "build": "node scripts/verify.cjs",
+    "deploy": "npm run build && wrangler pages deploy public --project-name seoul-jeonse-analysis --branch main"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

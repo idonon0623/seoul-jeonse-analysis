@@ -1,0 +1,41 @@
+{
+  "source": "https://data.seoul.go.kr/dataList/OA-21276/S/1/datasetView.do",
+  "license": "공공누리 제1유형 (출처표시)",
+  "files": [
+    {
+      "year": 2021,
+      "sequence": 34,
+      "file": "seoul_rent_2021.zip",
+      "sha256": "c623b49d483a41bb090329768297ea086fff181fb45a3bd7ad68a3e4e5ea4aac",
+      "bytes": 7006126
+    },
+    {
+      "year": 2022,
+      "sequence": 36,
+      "file": "seoul_rent_2022.zip",
+      "sha256": "77483fe458b54523042aa6443c25034918dd4cea220bd6e871b5332ac4cc3dab",
+      "bytes": 14462130
+    },
+    {
+      "year": 2023,
+      "sequence": 38,
+      "file": "seoul_rent_2023.zip",
+      "sha256": "8edf19b8c94fd81ebad58438a521cf789e2eb37b413323159e4990484701664b",
+      "bytes": 14651366
+    },
+    {
+      "year": 2024,
+      "sequence": 39,
+      "file": "seoul_rent_2024.zip",
+      "sha256": "1a72d2dc71a8cca3b1f87747427e5e181f7ae954d9c1fed6cf2f4670e674f125",
+      "bytes": 13844344
+    },
+    {
+      "year": 2025,
+      "sequence": 40,
+      "file": "seoul_rent_2025.zip",
+      "sha256": "d7a887488fb89eb337e134d4ce724b0279b207ec4d4f54e6ee3fb95c6fa49d52",
+      "bytes": 26675279
+    }
+  ]
+}
