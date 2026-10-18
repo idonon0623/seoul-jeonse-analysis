@@ -101,7 +101,9 @@ npx wrangler login
 npm run deploy
 ```
 
-Git 연결을 사용하는 경우 빌드 명령은 `npm run build`, 출력 디렉터리는 `public`, 프로덕션 브랜치는 `main`입니다.
-직접 업로드 방식에서는 GitHub 푸시와 `npm run deploy`가 별도 작업입니다. 실제 연결 방식과 발행 결과는 배포 완료 시 기록합니다.
+이 프로젝트는 **직접 업로드(Direct Upload)** 방식입니다. GitHub의 `main` 브랜치와 동일한 `public/` 파일을 Wrangler로 발행합니다.
+**GitHub 푸시만으로 자동 배포되지는 않습니다.** 수정 후 `git push`와 `npm run deploy`를 각각 실행하세요.
+GitHub 자동 연동 API가 오류를 반환해 직접 업로드 방식을 사용했습니다.
+새 프로젝트 생성 시 Wrangler 4.151의 Workers 전환을 피하려고 `wrangler pages project create seoul-jeonse-analysis --production-branch main --force`를 사용했으며, 이후 기존 프로젝트에 배포할 때는 `--force`가 필요 없습니다.
 
 Plotly.js는 MIT 라이선스이며 배포 파일의 원래 라이선스 주석을 유지합니다. Noto Sans KR은 Google Fonts에서 제공되며, 폰트 연결이 없어도 시스템 한글 폰트로 표시됩니다.
