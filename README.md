@@ -22,11 +22,16 @@
 
 ## 실행
 
-웹앱은 미리 생성한 집계 데이터를 사용하므로 API 키와 Python 설치 없이 실행할 수 있습니다.
+5년 기본 분석은 미리 생성한 집계 데이터를 사용합니다. 추가된 **서울시 API 재조회**는 Cloudflare Pages Functions가 `SEOUL_API_KEY`를 사용하여 실제 서울시 API를 호출합니다.
+로컬 API 개발은 프로젝트 루트의 Git 제외 파일 `.dev.vars`에 `SEOUL_API_KEY`를 설정한 뒤 `npm run dev`로 실행합니다. 키를 공개 코드나 채팅에 붙여넣지 마세요.
 
 ```sh
 npm start
-# http://127.0.0.1:4173
+# http://127.0.0.1:4173 — 파일 기반 분석만 미리보기
+npm run dev
+# http://localhost:4174 — API와 정적 파일 함께 실행 (.dev.vars 필요)
+npm test
+# 실제 인증키 없이 서버 필터·페이지네이션·비밀정보 비노출 단위 테스트
 ```
 
 GitHub/Cloudflare 빌드에서는 원본을 다시 다운로드하지 않습니다. `public/`에 검증된 집계와 Plotly 라이브러리를 포함했습니다.
@@ -91,9 +96,18 @@ npm run build
 
 ## Cloudflare 배포
 
-정적 파일을 Cloudflare Pages에 배포합니다. 공개 집계 결과만 사용하므로 **SEOUL_API_KEY가 필요 없습니다**.
+정적 파일과 `functions/api/rent.js`를 Cloudflare Pages에 함께 배포합니다. API 재조회에는 **SEOUL_API_KEY Secret이 필요합니다**.
 `.env`, `.dev.vars`, 원본 거래 파일과 로컬 캐시는 Git 및 배포 대상에서 제외합니다.
-브라우저는 같은 사이트의 집계 JSON, Plotly JS, 스타일과 웹폰트만 요청합니다.
+브라우저는 같은 사이트의 `/api/rent`를 호출합니다. 서버만 Secret을 읽어 `tbLnOpendataRentV`에 요청합니다.
+키를 포함한 원본 API URL, 원본 오류 메시지, 주소·건물명은 브라우저 응답에 포함하지 않습니다. 서버 오류에도 키나 원본 URL을 출력하지 않습니다.
+
+Cloudflare 대시보드 → Workers & Pages → `seoul-jeonse-analysis` → 설정 → 변수 및 비밀에서
+프로덕션 환경에 이름 `SEOUL_API_KEY`, 유형 **Secret**으로 서울 열린데이터광장 인증키를 등록하세요. 등록 후 재배포가 필요합니다.
+CLI를 사용할 경우 아래 명령의 비공개 입력 프롬프트에 키를 입력합니다. 키 값을 명령행 인수로 쓰지 마세요.
+
+```sh
+npx wrangler pages secret put SEOUL_API_KEY --project-name seoul-jeonse-analysis
+```
 
 ```sh
 npm ci
@@ -101,9 +115,19 @@ npx wrangler login
 npm run deploy
 ```
 
-이 프로젝트는 **직접 업로드(Direct Upload)** 방식입니다. GitHub의 `main` 브랜치와 동일한 `public/` 파일을 Wrangler로 발행합니다.
+이 프로젝트는 **직접 업로드(Direct Upload)** 방식입니다. GitHub의 `main` 브랜치와 동일한 `public/` 파일 및 Pages Functions를 Wrangler로 발행합니다.
 **GitHub 푸시만으로 자동 배포되지는 않습니다.** 수정 후 `git push`와 `npm run deploy`를 각각 실행하세요.
 GitHub 자동 연동 API가 오류를 반환해 직접 업로드 방식을 사용했습니다.
 새 프로젝트 생성 시 Wrangler 4.151의 Workers 전환을 피하려고 `wrangler pages project create seoul-jeonse-analysis --production-branch main --force`를 사용했으며, 이후 기존 프로젝트에 배포할 때는 `--force`가 필요 없습니다.
 
 Plotly.js는 MIT 라이선스이며 배포 파일의 원래 라이선스 주석을 유지합니다. Noto Sans KR은 Google Fonts에서 제공되며, 폰트 연결이 없어도 시스템 한글 폰트로 표시됩니다.
+
+## API 조회 범위와 해석
+
+- 서울시 공식 안내에서 OpenAPI는 최근 3개 접수연도만 제공합니다. 따라서 **2021–2025년 전체를 현재 API만으로 복원할 수 없습니다**. 5년 전체 분석·기존 해석은 공식 파일 기반으로 유지합니다.
+- 추가 API 패널은 완결연도인 2024·2025년, 선택한 자치구의 모든 페이지를 조회합니다. 2026년 진행 중 자료는 연간 비교에서 제외합니다. 제공 범위가 이동하면 지원 연도를 다시 검토해야 합니다.
+- 서버는 요청당 최대 1,000행을 받아 분석 필드만 반환합니다. 브라우저는 두 연도의 다음 페이지를 순서대로 이어받고, **전체 건수와 수집 건수 일치 시에만** 가격을 계산합니다. 첫 1,000행을 전체로 간주하지 않습니다. 자치구·연도당 20만 행을 초과하면 잘린 통계 대신 오류를 표시합니다.
+- 전세, 월세 0, 양수 보증금·면적, 대상 유형·지역, 유효한 계약일을 확인합니다. 각 접수연도 안에서 계약연도도 동일한 기록만 비교하므로, 기본 5년 집계(파일들을 합친 후 계약연도로 분류)와 모집단이 다릅니다. API 정정·갱신 시점과 2026년 접수분 누락도 차이를 만듭니다.
+- 고유 거래 ID가 없으므로 API의 동일값 행은 임의 중복 제거하지 않습니다. 월 3건 미만은 그래프에서, 연 30건 미만은 연간 변화율에서 제외합니다. 중앙값은 개별 계약의 보증금/면적에서 계산합니다.
+- 같은 조건의 응답은 최대 15분 캐시합니다. 실제 API 응답 수집 시각을 표시하며 캐시 조회 시각을 새 수집 시각으로 위장하지 않습니다. 페이지별 수집 시점이 달라질 수 있고 원본 API가 고정 스냅샷을 제공하지 않아 수정 중인 데이터의 완벽한 일관성은 보장할 수 없습니다. 조회 중 전체 건수가 바뀌면 결과 표시를 중단합니다.
+- 키 미등록·인증 실패·통신 실패는 명시적으로 표시하고, 파일 데이터를 API 응답처럼 대체하지 않습니다.
