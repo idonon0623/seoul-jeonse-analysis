@@ -44,6 +44,14 @@ test('pagination preserves duplicate-looking valid contracts and finds last page
   const last=await (await call(base+'&page=1',async url=>{assert(url.includes('/1001/2000/'));return upstream([valid],1001);})).json();
   assert.equal(last.nextPage,null);assert.equal(last.scanned,1);
 });
+test('uses Workers-compatible manual redirects and refuses redirect responses',async()=>{
+  const result=await call(base,async(url,options)=>{
+    assert.equal(options.redirect,'manual');
+    return new Response(null,{status:302,headers:{Location:'https://example.test/do-not-follow'}});
+  });
+  assert.equal(result.status,502);
+  const body=await result.json();assert.equal(body.diagnostic,'HTTP');assert.equal(body.upstreamStatus,302);
+});
 test('empty response is explicit; missing/truncated pages never silently count as complete',async()=>{
   const empty=await call(base,async()=>Response.json({RESULT:{CODE:'INFO-200'}}));
   assert.equal((await empty.json()).total,0);
